@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<script type="text/javascript" src="../js/eventemitter2.min.js"></script>
+<script type="text/javascript" src="../js/roslib.min.js"></script>
+
+<script type="text/javascript" type="text/javascript">
+  // Connecting to ROS
+  // -----------------
+  var ros = new ROSLIB.Ros({
+    //url : 'ws://159.90.169.130:9090'
+  url : 'ws://159.90.170.245:9090'
+  });
+  ros.on('connection', function() {
+    console.log('Connected to websocket server.');
+  });
+  ros.on('error', function(error) {
+    console.log('Error connecting to websocket server: ', error);
+  });
+  ros.on('close', function() {
+    console.log('Connection to websocket server closed.');
+  });
+  // Publishing a Topic
+  // ------------------
+// These lines create a topic object as defined by roslibjs
+var cmdVelTopic = new ROSLIB.Topic({
+    ros : ros,
+    name : '/cmd_vel',
+    messageType : 'geometry_msgs/Twist'
+});
+// These lines create a message that conforms to the structure of the Twist defined in our ROS installation
+// It initalizes all properties to zero. They will be set to appropriate values before we publish this message.
+var twist = new ROSLIB.Message({
+    linear : {
+        x : 0.0,
+        y : 0.0,
+        z : 0.0
+    },
+    angular : {
+        x : 0.0,
+        y : 0.0,
+        z : 0.0
+    }
+});
+var setPointMotor1_Topic = new ROSLIB.Topic({
+  ros : ros,
+  name : '/setPointMotor1_Topic',
+  messageType : 'std_msgs/Float64'
+        
+  });
+
+var setPointMotor2_Topic = new ROSLIB.Topic({
+  ros : ros,
+  name : '/setPointMotor2_Topic',
+  messageType : 'std_msgs/Float64'
+        
+  });
+
+var setPointMotor3_Topic = new ROSLIB.Topic({
+  ros : ros,
+  name : '/setPointMotor3_Topic',
+  messageType : 'std_msgs/Float64'
+        
+  });
+
+var setPointMotor4_Topic = new ROSLIB.Topic({
+  ros : ros,
+  name : '/setPointMotor4_Topic',
+  messageType : 'std_msgs/Float64'
+        
+  });
+    
+  var Arduino_Topic = new ROSLIB.Topic({
+  ros : ros,
+  name : '/Arduino_Topic',
+  messageType : 'std_msgs/Float64'
+  });
+    
+ function receiveSet1() { 
+      
+  var setPointMotor1 = document.getElementById("setPointMotor1ID").value;
+  var setPointMotor2 = document.getElementById("setPointMotor2ID").value;
+  var setPointMotor3 = document.getElementById("setPointMotor3ID").value;
+  var setPointMotor4 = document.getElementById("setPointMotor4ID").value;
+  
+  // Publishing a Topic
+  // ------------------
+      
+  //Motor Setpoints****************************
+  var setPointMessage1 = new ROSLIB.Message({
+  data: parseFloat(setPointMotor1)     
+  });
+  
+  setPointMotor1_Topic.publish(setPointMessage1);
+
+  var setPointMessage2 = new ROSLIB.Message({
+  data: parseFloat(setPointMotor2)     
+  });
+  
+  setPointMotor2_Topic.publish(setPointMessage2);
+
+  var setPointMessage3 = new ROSLIB.Message({
+  data: parseFloat(setPointMotor3)     
+  });
+  
+  setPointMotor3_Topic.publish(setPointMessage3);
+
+  var setPointMessage4 = new ROSLIB.Message({
+  data: parseFloat(setPointMotor4)     
+  });
+  
+  setPointMotor4_Topic.publish(setPointMessage4);
+
+  //*************************************************
+  
+  Arduino_Topic.subscribe(function(message) {
+    console.log('Received message on ' + Arduino_Topic.name + ': ' + message.data);
+    document.getElementById("Arduino_Topic").innerHTML = message.data;
+    //listener_status.unsubscribe();
+  });  
+    
+}
+    
+    
+    
+/* This function:
+ - retrieves numeric values from the text boxes
+ - assigns these values to the appropriate values in the twist message
+ - publishes the message to the cmd_vel topic.
+ */
+    
+    
+function pubMessage() {
+    /**
+    Set the appropriate values on the twist message object according to values in text boxes
+    It seems that turtlesim only uses the x property of the linear object 
+    and the z property of the angular object
+    **/
+    var linearX = 0.0;
+    var angularZ = 0.0;
+    // get values from text input fields. Note for simplicity we are not validating.
+    linearX = 0 + Number(document.getElementById('linearXText').value);
+    angularZ = 0 + Number(document.getElementById('angularZText').value);
+    // Set the appropriate values on the message object
+    twist.linear.x = linearX;
+    twist.angular.z = angularZ;
+    // Publish the message 
+    cmdVelTopic.publish(twist);
+}
+   // Subscribing to a Topic
+  // ----------------------
+  var listener_roll = new ROSLIB.Topic({
+    ros : ros,
+    name : '/roll',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_roll.subscribe(function(message) {
+    console.log('Received message on ' + listener_roll.name + ': ' + message.data);
+    document.getElementById("roll").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_roll.unsubscribe();
+  });
+    var listener_pitch = new ROSLIB.Topic({
+    ros : ros,
+    name : '/pitch',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_pitch.subscribe(function(message) {
+    console.log('Received message on ' + listener_pitch.name + ': ' + message.data);
+    document.getElementById("pitch").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_pitch.unsubscribe();
+  });
+    var listener_yaw = new ROSLIB.Topic({
+    ros : ros,
+    name : '/yaw',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_yaw.subscribe(function(message) {
+    console.log('Received message on ' + listener_yaw.name + ': ' + message.data);
+    document.getElementById("yaw").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_yaw.unsubscribe();
+  });
+    var listener_fMotor1 = new ROSLIB.Topic({
+    ros : ros,
+    name : '/fMotor1',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_fMotor1.subscribe(function(message) {
+    console.log('Received message on ' + listener_fMotor1.name + ': ' + message.data);
+    document.getElementById("fMotor1").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_fMotor1.unsubscribe();
+  });
+  
+  
+  
+  var listener_fMotor2 = new ROSLIB.Topic({
+    ros : ros,
+    name : '/fMotor2',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_fMotor2.subscribe(function(message) {
+    console.log('Received message on ' + listener_fMotor2.name + ': ' + message.data);
+    document.getElementById("fMotor2").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_fMotor2.unsubscribe();
+  });
+  var listener_fMotor3 = new ROSLIB.Topic({
+    ros : ros,
+    name : '/fMotor3',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_fMotor3.subscribe(function(message) {
+    console.log('Received message on ' + listener_fMotor3.name + ': ' + message.data);
+    document.getElementById("fMotor3").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_fMotor3.unsubscribe();
+  });
+  var listener_fMotor4 = new ROSLIB.Topic({
+    ros : ros,
+    name : '/fMotor4',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_fMotor4.subscribe(function(message) {
+    console.log('Received message on ' + listener_fMotor4.name + ': ' + message.data);
+    document.getElementById("fMotor4").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_fMotor4.unsubscribe();
+  });
+  var listener_posx = new ROSLIB.Topic({
+    ros : ros,
+    name : '/posx',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_posx.subscribe(function(message) {
+    console.log('Received message on ' + listener_posx.name + ': ' + message.data);
+    document.getElementById("posx").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_posx.unsubscribe();
+  });
+  
+  
+  var listener_posy = new ROSLIB.Topic({
+    ros : ros,
+    name : '/posy',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_posy.subscribe(function(message) {
+    console.log('Received message on ' + listener_posy.name + ': ' + message.data);
+    document.getElementById("posy").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_posy.unsubscribe();
+  });
+  var listener_posz = new ROSLIB.Topic({
+    ros : ros,
+    name : '/posz',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_posz.subscribe(function(message) {
+    console.log('Received message on ' + listener_posz.name + ': ' + message.data);
+    document.getElementById("posz").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_posz.unsubscribe();
+  });
+  var listener_velx = new ROSLIB.Topic({
+    ros : ros,
+    name : '/velx',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_velx.subscribe(function(message) {
+    console.log('Received message on ' + listener_velx.name + ': ' + message.data);
+    document.getElementById("velx").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_velx.unsubscribe();
+  });
+  var listener_vely = new ROSLIB.Topic({
+    ros : ros,
+    name : '/vely',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_vely.subscribe(function(message) {
+    console.log('Received message on ' + listener_vely.name + ': ' + message.data);
+    document.getElementById("vely").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_vely.unsubscribe();
+  });
+  
+  
+  var listener_velz = new ROSLIB.Topic({
+    ros : ros,
+    name : '/velz',
+    messageType : 'std_msgs/Float64'
+  });
+  listener_velz.subscribe(function(message) {
+    console.log('Received message on ' + listener_velz.name + ': ' + message.data);
+    document.getElementById("velz").innerHTML = parseFloat(message.data).toFixed(1);
+    //listener_velz.unsubscribe();
+  });
+  
+    </script>
+
+
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+	
+
+    
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="../bower_components/metisMenu/dist/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="../dist/css/timeline.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="../bower_components/morrisjs/morris.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">Datos de simulación de submarino</a>
+            </div>
+            <!-- /.navbar-header -->
+
+        </nav>
+
+        <div id="container-full">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header text-center">Monitoreo de variables</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+                <div class="col-lg-4 col-md-4 col-sm-4">
+                </div>
+                <div class="col-lg-4 col-md-4 col-sm-4">
+                <div class="form-group">
+                    <label for="usr">Velocidad de motor 1</label>
+                    <input type="text-center" class="form-control" id="setPointMotor1ID">
+                    <label for="usr">Velocidad de motor 2</label>
+                    <input type="text-center" class="form-control" id="setPointMotor2ID">
+                    <label for="usr">Velocidad de motor 3</label>
+                    <input type="text-center" class="form-control" id="setPointMotor3ID">
+                    <label for="usr">Velocidad de motor 4</label>
+                    <input type="text-center" class="form-control" id="setPointMotor4ID">
+                </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                </div>
+                <div class="col-lg-3 col-md-6">
+                </div>
+            </div>
+            
+            <!-- /.row -->
+            <div class="row">
+                <div class="col-lg-4 col-md-5 col-sm-4">
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-4">
+                <div class="form-group">
+                    <input type="submit" class="btn btn-info btn-block" name="button" id="button1" onclick="receiveSet1()" value="Enter" />
+                    
+                </div>
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-4">
+                </div>
+                        
+            </div>
+                
+            <!-- /.row -->
+            <div class="row">
+                <div class="col-sm-4">                        
+                        <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-bell fa-fw"></i>Posición en el plano cartesiano.
+                            </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="list-group">
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="posx"></p></bold></h3></div>
+                                        <div>X</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="posy"></p></bold></h3></div>
+                                        <div>Y</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="posz"></p></bold></h3></div>
+                                        <div>Z</div>
+                                    </center>
+                                </a>
+				
+                            </div>
+                            <!-- /.list-group -->
+                            
+                        </div></div>
+                        <!-- /.panel-body -->
+                    
+                        
+                        
+                        
+                        <!-- /.panel-body -->
+                
+                    
+                
+                   
+                    <!-- /.panel -->
+                </div>
+                <!-- /.col-lg-8 -->
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-bell fa-fw"></i>Posiciones angulares
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="list-group">
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="roll"></p></bold></h3></div>
+                                        <div>Roll</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="pitch"></p></bold></h3></div>
+                                        <div>Pitch</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="yaw"></bold></h3></div>
+                                        <div>Yaw</div>
+                                    </center>
+                                </a>
+                                
+						</div>
+                    </div>
+				
+                        <!-- /.panel-footer -->
+                    </div>
+
+
+
+               
+                    <!-- /.panel .chat-panel -->
+                </div>
+                <!-- /.col-lg-4 -->
+            
+            <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-bell fa-fw"></i> Status de los actuadores
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="list-group">
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="statusFan"></p></bold></h3></div>
+                                        <div>Electroventiladores</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="statusValve1"></p></bold></h3></div>
+                                        <div>Electroválvula</div>
+                                    </center>
+                                </a>
+                                
+							
+                                
+						</div>
+                    </div>
+				
+                        <!-- /.panel-footer -->
+                    </div>
+                    <!-- /.panel .chat-panel -->
+                </div>
+            </div>
+             <div class="row">
+                    <div class="col-sm-3">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-bell fa-fw"></i> Celda #1
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="list-group">
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="fMotor2"></p></bold></h3></div>
+                                        <div>Voltaje [V]</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="posy"></p></bold></h3></div>
+                                        <div>Corriente [A]</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="roll"></p></bold></h3></div>
+                                        <div>Temperatura [ºC]</div>
+                                    </center>
+                                </a>
+                            </div></div></div></div>
+                    <div class="col-sm-3">
+                            
+                            <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-bell fa-fw"></i> Celda #2
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="list-group">
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="fMotor3"></p></bold></h3></div>
+                                        <div>Voltaje [V]</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="posz"></p></bold></h3></div>
+                                        <div>Corriente [A]</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="pitch"></p></bold></h3></div>
+                                        <div>Temperatura [ºC]</div>
+                                    </center>
+                                </a>
+                            </div></div></div></div>
+                    
+                    <div class="col-sm-3">
+                            <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-bell fa-fw"></i> Celda #3
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="list-group">
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="fMotor4"></p></bold></h3></div>
+                                        <div>Voltaje</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="velx"></p></bold></h3></div>
+                                        <div>Corriente</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="yaw"></p></bold></h3></div>
+                                        <div>Temperatura</div>
+                                    </center>
+                                </a>
+                            </div></div></div></div>
+                    
+                    <div class="col-sm-3">       
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-bell fa-fw"></i> Celda #4
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="list-group">
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="posx"></p></bold></h3></div>
+                                        <div>Voltaje</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="vely"></p></bold></h3></div>
+                                        <div>Corriente</div>
+                                    </center>
+                                </a>
+                                <a href="#" class="list-group-item">
+                                    <center>
+                                        <div><h3><bold><p id="fMotor1"></p></bold></h3></div>
+                                        <div>Temperatura</div>
+                                    </center>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    </div>
+            <!-- /.row -->
+        
+			<div class="footer text-center">
+             <p>Simulación de Sistemas Dinámicos | Universidad Simón Bolívar</p>
+            </div>
+						
+							
+							
+        </div>
+        <!-- /#page-wrapper -->
+		
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery -->
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="../bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="../bower_components/metisMenu/dist/metisMenu.min.js"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="../bower_components/raphael/raphael-min.js"></script>
+    <script src="../bower_components/morrisjs/morris.min.js"></script>
+    <script src="../js/morris-data.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="../dist/js/sb-admin-2.js"></script>
+
+</body>
+
+</html>
