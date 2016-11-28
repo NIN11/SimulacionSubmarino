@@ -7,8 +7,8 @@
   // Connecting to ROS
   // -----------------
   var ros = new ROSLIB.Ros({
-    //url : 'ws://159.90.169.130:9090'
-  url : 'ws://159.90.170.245:9090'
+    url : 'ws://159.90.169.130:9090'
+  //url : 'ws://159.90.170.245:9090'
   });
   ros.on('connection', function() {
     console.log('Connected to websocket server.');
